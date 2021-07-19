@@ -5,7 +5,7 @@ extern crate rustc_interface;
 extern crate rustc_session;
 
 use rustc_driver::Callbacks;
-use rustc_interface::interface::Config;
+use rustc_interface::interface::Config as RustcConfig;
 use rustc_session::config::Options as RustcOptions;
 
 use std::process::Command;
@@ -35,19 +35,18 @@ fn main() {
 struct Compiler;
 
 impl Callbacks for Compiler {
-    fn config(&mut self, config: &mut Config) {
-        let options = Options(&config.opts);
-        eprintln!("{:#?}", options);
+    fn config(&mut self, config: &mut RustcConfig) {
+        let config = Config(&config);
+        let options = Options(&config.0.opts);
+        eprintln!("Config:\n{:#?}Options:\n{:#?}", config, options);
     }
 }
 
-struct Options<'a>(&'a RustcOptions);
-
 macro_rules! impl_debug {
-    ($( $name: ident )* ) => {
-        impl Debug for Options<'_> {
+    ($type_name: ident : $( $name: ident )* ) => {
+        impl Debug for $type_name<'_> {
             fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-                f.debug_struct("Options")
+                f.debug_struct(stringify!($type_name))
                 $(
                     .field(stringify!($name), &self.0.$name)
                 )*
@@ -57,7 +56,23 @@ macro_rules! impl_debug {
     }
 }
 
+struct Config<'a>(&'a RustcConfig);
+
 impl_debug! {
+    Config:
+    crate_cfg
+    // input
+    input_path
+    output_dir
+    output_file
+    lint_caps
+    // registry
+}
+
+struct Options<'a>(&'a RustcOptions);
+
+impl_debug! {
+    Options:
     crate_types
     optimize
     debug_assertions
