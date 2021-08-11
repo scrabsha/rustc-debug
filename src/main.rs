@@ -79,7 +79,7 @@ impl_debug! {
     debuginfo
     lint_opts
     lint_cap
-    force_warns
+    // force_warns
     describe_lints
     output_types
     search_paths
